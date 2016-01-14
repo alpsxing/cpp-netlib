@@ -352,10 +352,15 @@ struct http_async_connection
                     this_type::shared_from_this(), body, get_body, callback,
                     placeholders::error, placeholders::bytes_transferred)),
                 remainder);
+            if(remainder && remainder >= this->content_length) {
+               bytes_transferred = 0;
+               goto PROCESSBODY;
+            }
           }
           return;
         case body:
           if (ec == boost::asio::error::eof || is_ssl_short_read_error) {
+PROCESSBODY:
             // Here we're handling the case when the connection has been closed
             // from the server side, or at least that the end of file has been
             // reached while reading the socket. This signals the end of the
